@@ -1,0 +1,6 @@
+# 不放上网的东西
+SPEC.md
+DECISIONS.md
+desktop.ini
+.ref/
+.debug/

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>橱柜设计</title>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+  :root {
+    --bg: #f4f4f2; --panel: #fff; --line: #d9d9d5; --text: #1d1d1b; --muted: #6b6b66;
+    --accent: #e8590c; --blue: #1f4fd8; --warn-bg: #fff4e5; --warn: #9a4a00; --ok: #2b7a3d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.4 system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif; }
+  header { height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 12px;
+    background: var(--panel); border-bottom: 1px solid var(--line); }
+  header .title { font-weight: 600; margin-right: 8px; }
+  header .title small { color: var(--muted); font-weight: 400; margin-left: 6px; }
+  header .sp { flex: 1; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; border-right: 1px solid var(--line); }
+  .seg button:last-child { border-right: 0; }
+  .seg button.on { background: #1d1d1b; color: #fff; }
+  button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
+    color: var(--text); cursor: pointer; min-height: 32px; }
+  button:hover { background: #f0f0ec; }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { background: #1d1d1b; color: #fff; border-color: #1d1d1b; }
+  button.danger { color: #b42318; border-color: #f0c2bd; }
+  button.x { padding: 2px 8px; min-height: 28px; color: var(--muted); }
+  main { display: grid; grid-template-columns: 330px 1fr 320px; height: calc(100% - 48px); }
+  #left, #right { background: var(--panel); overflow: auto; }
+  #left { border-right: 1px solid var(--line); }
+  #right { border-left: 1px solid var(--line); padding: 12px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 8px 8px 0; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--panel); z-index: 1; }
+  .tabs button { border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 6px 8px; }
+  .tabs button.on { border-bottom-color: var(--accent); font-weight: 600; }
+  .tabbody { padding: 12px; }
+  .hint, .note { color: var(--muted); font-size: 12.5px; margin: 6px 0; }
+  .warn { background: var(--warn-bg); color: var(--warn); padding: 6px 8px; border-radius: 6px; margin: 8px 0; font-size: 13px; }
+  .ok { color: var(--ok); margin: 8px 0; }
+  .row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .row .lab { flex: 1; color: #3a3a37; }
+  .row .unit { color: var(--muted); width: 22px; font-size: 12px; }
+  input[type=number], input[type=text], select { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; min-height: 30px; background: #fff; }
+  input[type=number] { width: 86px; }
+  input[type=text] { width: 160px; }
+  input.bad { border-color: #d92d20; background: #fff1f0; }
+  .walltable { display: flex; flex-direction: column; gap: 4px; }
+  .wallrow { display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 6px; }
+  .wallrow.sel { background: #fdeee4; }
+  .wallrow input[type=number] { width: 70px; }
+  .wallrow .letter { font-weight: 700; width: 34px; padding: 0; }
+  .mini { font-size: 12px; color: var(--muted); }
+  .mini.dim { margin-left: 4px; }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .btnrow.col { flex-direction: column; align-items: stretch; }
+  .btnrow.small button { min-height: 28px; padding: 3px 8px; font-size: 13px; }
+  details { margin: 12px 0; border-top: 1px solid var(--line); padding-top: 8px; }
+  summary { cursor: pointer; font-weight: 600; }
+  .list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .list .item { text-align: left; }
+  .list .item.sel { border-color: var(--accent); background: #fdeee4; }
+  .empty { color: var(--muted); padding: 6px 0; }
+  .empty.big { padding: 20px 4px; line-height: 1.6; }
+  h3 { margin: 4px 0 10px; font-size: 16px; }
+  h4 { margin: 14px 0 6px; font-size: 13.5px; }
+  .cells { border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  .cellrow { border-top: 1px dashed var(--line); padding: 6px 0; }
+  .cellhead, .cell { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 3px 0; }
+  .cell { padding-left: 12px; }
+  .cell input[type=number], .cellhead input[type=number] { width: 70px; }
+  .cell select { max-width: 150px; }
+  .form.more { margin: 2px 0 8px 24px; padding: 6px 8px; background: #f7f7f4; border-radius: 6px; }
+  .pane .bar button.on { background: #1d1d1b; color: #fff; }
+  #views { position: relative; display: grid; grid-template-columns: 1fr 1fr; min-width: 0; min-height: 0; }
+  #views.v-plan { grid-template-columns: 1fr 0; }
+  #views.v-3d { grid-template-columns: 0 1fr; }
+  .pane { position: relative; overflow: hidden; background: #fff; min-width: 0; }
+  .pane + .pane { border-left: 1px solid var(--line); }
+  .pane .bar { position: absolute; top: 8px; left: 8px; display: flex; flex-wrap: wrap; gap: 4px; z-index: 2; }
+  .pane .bar button { min-height: 28px; padding: 3px 8px; font-size: 13px; background: rgba(255,255,255,.92); }
+  .pane .tag { position: absolute; bottom: 8px; left: 10px; color: var(--muted); font-size: 12px; z-index: 2; pointer-events: none; }
+  #plan { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  #view3d { width: 100%; height: 100%; position: relative; }
+  #view3d .overlay { position: absolute; inset: 0; pointer-events: none; }
+  #view3d .overlay svg { position: absolute; inset: 0; }
+  #view3d .overlay .chain, #view3d .overlay .note { pointer-events: auto; cursor: move; }
+  #view3d.picking canvas { cursor: crosshair; }
+  #view3d canvas { display: block; touch-action: none; }
+  /* 平面图 */
+  #plan .wallfill { fill: url(#hatch); stroke: none; }
+  #plan .ln, #plan .leaf { stroke: #111; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+  #plan .thin { stroke: #888; stroke-width: .8; vector-effect: non-scaling-stroke; }
+  #plan .arc { fill: none; stroke: #111; stroke-width: .8; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+  #plan .frame { fill: #fff; stroke: #111; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  #plan .post { fill: #111; }
+  #plan .hit { fill: transparent; stroke: none; }
+  #plan .overhead { fill: none; stroke: #111; stroke-width: 1; stroke-dasharray: 8 5; vector-effect: non-scaling-stroke; }
+  #plan .column { fill: #fff; stroke: #111; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+  #plan .sym { fill: #fff; stroke: #111; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  #plan .symfill { fill: #111; stroke: none; }
+  #plan .itemtext { fill: #111; }
+  #plan .dimln, #plan .dimext, #plan .dimtick { stroke: var(--blue); stroke-width: .9; vector-effect: non-scaling-stroke; }
+  #plan .dimtick { stroke-width: 1.6; }
+  #plan .dashed { stroke-dasharray: 5 4; }
+  #plan .dimtext { fill: var(--blue); }
+  #plan .label { fill: #fff; stroke: #111; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+  #plan .labeltext { fill: #111; font-weight: 600; }
+  #plan .gap { stroke: #d00000; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+  #plan .gaptext { fill: #d00000; }
+  #plan .cabBase, #plan .cabFront { fill: #fff; stroke: #111; stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+  #plan .cabUpper { fill: rgba(255,255,255,.35); stroke: #111; stroke-width: 1; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; }
+  #plan .cabtext { fill: #333; }
+  #plan .filler { fill: url(#hatch); stroke: #111; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  #plan .ctop { fill: transparent; stroke: #111; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+  #plan .seam { stroke: #111; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+  #plan .cut { fill: none; stroke: #111; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  #plan .sel .ctop, #plan .sel .cut, #plan .sel .filler { stroke: var(--accent); stroke-width: 2; }
+  #plan g[data-drag] { cursor: move; }
+  #plan .sel .cabBase, #plan .sel .cabFront, #plan .sel .cabUpper { stroke: var(--accent); stroke-width: 2; }
+  #plan .sel .cabtext { fill: var(--accent); }
+  #plan g[data-id] { cursor: pointer; }
+  #plan .sel .ln, #plan .sel .leaf, #plan .sel .frame, #plan .sel .overhead, #plan .sel .column, #plan .sel .sym, #plan .sel .arc { stroke: var(--accent); stroke-width: 2; }
+  #plan .sel .symfill, #plan .sel .itemtext, #plan .sel .post { fill: var(--accent); }
+  dialog { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 340px; max-width: 92vw; }
+  dialog::backdrop { background: rgba(0,0,0,.25); }
+  #authOverlay { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .authbox { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 24px; width: min(380px, 100%); display: flex; flex-direction: column; gap: 10px; }
+  .authbox h2 { margin: 0 0 4px; }
+  .authbox input { font: inherit; padding: 10px; border: 1px solid var(--line); border-radius: 8px; min-height: 42px; font-size: 16px; }
+  .authbox button { min-height: 42px; }
+  .authmsg { color: var(--warn); min-height: 1.4em; font-size: 13px; }
+  .cloudstatus { font-size: 12px; color: var(--muted); }
+  .cloudstatus.saved { color: var(--ok); }
+  .cloudstatus.error, .cloudstatus.offline { color: #b42318; }
+  .account { display: flex; gap: 6px; }
+  .libitem .owner { color: var(--muted); }
+  .libitem .owner.me { color: var(--ok); }
+  .libitem.cur { border-color: var(--accent); }
+  #busy { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #1d1d1b; color: #fff; padding: 10px 16px; border-radius: 8px; z-index: 10; }
+  .cell.segs { flex-wrap: wrap; gap: 2px 10px; }
+  .libitem { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; margin: 4px 0; }
+  .libitem .btnrow { margin: 4px 0 0; }
+  .libbar { margin: 0 0 6px; justify-content: flex-end; }
+  .cell.segs .seg { display: inline-flex; align-items: center; gap: 3px; font-size: 13px; }
+  dialog .btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+  /* 平板（手指）：按钮和输入框大一点，比较好按 */
+  @media (pointer: coarse) {
+    button { min-height: 40px; padding: 6px 12px; }
+    button.x { min-height: 36px; min-width: 36px; }
+    input[type=number], input[type=text], select { min-height: 38px; font-size: 16px; }
+    .tabs button { padding: 10px 10px; }
+    .pane .bar button { min-height: 36px; }
+    .row { margin: 8px 0; }
+  }
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 290px 1fr; grid-template-rows: 1fr auto; }
+    #right { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); max-height: 40vh; }
+  }
+  @media (max-width: 720px) {
+    header { height: auto; flex-wrap: wrap; padding: 6px 12px; }
+    main { display: flex; flex-direction: column; height: auto; }
+    #views { height: 70vh; grid-template-columns: 1fr; grid-template-rows: 1fr 1fr; }
+    #views.v-plan, #views.v-3d { grid-template-rows: 1fr; }
+    #views.v-plan #pane3d, #views.v-3d #paneplan { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">橱柜设计<small id="projname"></small></div>
+  <button id="undo" title="撤销 (Ctrl+Z)">↶ 撤销</button>
+  <button id="redo" title="重做 (Ctrl+Y)">↷ 重做</button>
+  <span id="cloudStatus" class="cloudstatus"></span>
+  <span class="sp"></span>
+  <div id="account" class="account"></div>
+  <div class="seg">
+    <button data-view="plan">平面图</button>
+    <button data-view="split" class="on">并排</button>
+    <button data-view="3d">3D</button>
+  </div>
+</header>
+<main>
+  <aside id="left"></aside>
+  <section id="views" class="v-split">
+    <div class="pane" id="paneplan">
+      <div class="bar"><button id="fit">适合大小</button></div>
+      <svg id="plan" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div class="tag">平面图 · 滚轮缩放 · 拖动移动</div>
+    </div>
+    <div class="pane" id="pane3d">
+      <div class="bar" id="wallviews"></div>
+      <div id="view3d"></div>
+      <div class="tag">3D · 拖动转角度 · 右键移动 · 滚轮缩放</div>
+    </div>
+  </section>
+  <aside id="right"></aside>
+</main>
+<dialog id="dlg"></dialog>
+<div id="busy" hidden></div>
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
