@@ -85,3 +85,5 @@ grant select, insert, update, delete on public.projects to authenticated;
 grant select, insert, update, delete on public.library_entries to authenticated;
 grant select, insert, update on public.profiles to authenticated;
 revoke all on public.projects, public.library_entries, public.profiles from anon;
+-- 用不到的权限也拿掉（网页本来就做不到这些，只是保险）
+revoke truncate, trigger, references on public.projects, public.library_entries, public.profiles from anon, authenticated;
